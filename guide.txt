@@ -1,0 +1,1 @@
+Get-Content .\config\schema.sql | & "C:\xampp\mysql\bin\mysql.exe" -u root
