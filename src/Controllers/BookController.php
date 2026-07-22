@@ -13,14 +13,15 @@ class BookController
     {
         $this->bookModel = new Book($pdo);
     }
-    
+
     /**
      * Ajouter un nouveau livre
      */
     public function store(
         Request $request,
         Response $response
-    ): Response {
+        ): Response {
+
 
         $data = $request->getParsedBody();
 
@@ -44,14 +45,10 @@ class BookController
         $datePublication =
             $data['date_publication'] ?? null;
 
-        $fichier =
-            $data['fichier'] ?? null;
-
         // Récupérer l'identifiant de l'auteur
         $auteurId = (int) (
             $data['auteur_id'] ?? 0
         );
-
 
         if (empty($titre)) {
 
@@ -65,7 +62,6 @@ class BookController
             );
         }
 
-
         if ($auteurId <= 0) {
 
             return $this->jsonResponse(
@@ -78,29 +74,63 @@ class BookController
             );
         }
 
+        // Récupérer le fichier envoyé
+        $uploadedFiles =
+            $request->getUploadedFiles();
 
-        $this->bookModel->create(
-            $titre,
-            $description,
-            $datePublication,
-            $fichier,
-            $auteurId
-        );
+        $uploadedFile =
+            $uploadedFiles['fichier'] ?? null;
 
+        $fichier = null;
 
-        return $this->jsonResponse(
-            $response,
-            [
-                'message' =>
-                    'Livre créé avec succès'
-            ],
-            201
-        );
-    }
+        // Vérifier et enregistrer le fichier
+        if (
+            $uploadedFile !== null &&
+            $uploadedFile->getError() === UPLOAD_ERR_OK
+        ) {
 
-    /**
-     * Afficher tous les livres
-     */
+            $filename =
+                uniqid() . '_' .
+                $uploadedFile->getClientFilename();
+
+                $uploadDirectory =
+                    __DIR__ . '/../../storage/books/';
+    
+                $uploadPath =
+                    $uploadDirectory . $filename;
+    
+                $uploadedFile->moveTo(
+                    $uploadPath
+                );
+    
+                $fichier = $filename;
+            }
+    
+            // Enregistrer le livre dans la base de données
+            $this->bookModel->create(
+                $titre,
+                $description,
+                $datePublication,
+                $fichier,
+                $auteurId
+            );
+    
+            return $this->jsonResponse(
+                $response,
+                [
+                    'message' =>
+                        'Livre créé avec succès',
+    
+                    'fichier' =>
+                        $fichier
+                ],
+                201
+            );
+        }
+    
+        /**
+         * Afficher tous les livres
+         */
     public function index(
         Request $request,
         Response $response
