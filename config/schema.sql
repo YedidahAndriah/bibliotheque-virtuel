@@ -56,3 +56,23 @@ CREATE TABLE lecture (
         REFERENCES utilisateur(id)
         ON DELETE CASCADE
 );
+
+CREATE TABLE autorisation (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+
+    utilisateur_id INT NOT NULL,
+
+    livre_id INT NOT NULL,
+
+    date_debut DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    date_fin DATETIME NULL,
+
+    FOREIGN KEY (utilisateur_id)
+        REFERENCES utilisateur(id)
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (livre_id)
+        REFERENCES livre(id)
+        ON DELETE CASCADE
+);

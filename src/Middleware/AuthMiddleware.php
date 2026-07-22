@@ -21,12 +21,12 @@ class AuthMiddleware
         RequestHandler $handler
     ): Response {
 
-        // Récupérer le header Authorization
+        // 1. Récupérer le header Authorization
         $authHeader = $request->getHeaderLine(
             'Authorization'
         );
 
-        // Vérifier le format Bearer TOKEN
+        // 2. Vérifier le format Bearer TOKEN
         if (
             empty($authHeader) ||
             !str_starts_with(
@@ -39,7 +39,7 @@ class AuthMiddleware
             );
         }
 
-        // Extraire le token
+        // 3. Extraire le token
         $token = trim(
             substr(
                 $authHeader,
@@ -47,24 +47,31 @@ class AuthMiddleware
             )
         );
 
-        // Rechercher l'utilisateur
+        // 4. Rechercher l'utilisateur
         $user = $this->userModel->findByToken(
             $token
         );
 
+        // 5. Vérifier le token
         if ($user === null) {
             return $this->unauthorizedResponse(
                 'Token invalide'
             );
         }
 
-        // Ajouter l'utilisateur à la requête
+        // 6. Ajouter l'utilisateur complet à la requête
         $request = $request->withAttribute(
             'user',
             $user
         );
 
-        // Continuer vers la route
+        // 7. Ajouter l'ID de l'utilisateur à la requête
+        $request = $request->withAttribute(
+            'user_id',
+            (int) $user['id']
+        );
+
+        // 8. Continuer vers le Controller
         return $handler->handle(
             $request
         );
